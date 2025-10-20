@@ -1,68 +1,11 @@
-# import pygame
-# from sys import exit
-# # Initialize Pygame
-# pygame.init()
-
-# # Set up the display
-# SCREEN_WIDTH = 800
-# SCREEN_HEIGHT = 400
-# screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-# pygame.display.set_caption("Connect Four")
-# clock = pygame.time.Clock()
-# test_font = pygame.font.Font('graphics/Pixeltype.ttf', 50)
-
-# sky_surface = pygame.image.load('graphics/Sky.png').convert()
-# ground_surface = pygame.image.load('graphics/ground.png').convert()
-
-# score_surf = test_font.render('My game',False,'Black').convert()
-# score_rect = score_surf.get_rect(center = (400, 50))
-
-
-# snail_surface = pygame.image.load('graphics/snail1.png').convert_alpha()
-# snail_rect = snail_surface.get_rect(midbottom = (600,300))
-
-# player_surface = pygame.image.load('graphics/player_walk_1.png').convert_alpha()
-# player_rect = player_surface.get_rect(midbottom = (80,300))
-
-# # Main game loop
-# run = True
-# while run:
-#   for event in pygame.event.get():
-#     if event.type == pygame.QUIT:
-#       pygame.quit()
-#       exit()
-#     #if event.type == pygame.MOUSEMOTION:
-#     #  if player_rect.collidepoint(event.pos): print('colision')
-
-#   screen.blit(sky_surface,(0,0))
-#   screen.blit(ground_surface,(0,300))
-#   pygame.draw.rect(screen, 'Pink', score_rect)
-#   screen.blit(score_surf,score_rect)
-  
-#   snail_rect.x -= 4
-#   if snail_rect.right <= 0: snail_rect.left = 800
-#   screen.blit(snail_surface,snail_rect)
-#   screen.blit(player_surface,player_rect)
-
-#   #if player_rect.colliderect(snail_rect):
-
-#  #mouse_pos = pygame.mouse.get_pos()
-#   #if player_rect.collidepoint((mouse_pos)):
-#     #print(pygame.mouse.get_pressed())
-  
-
-#   #update the display
-#   pygame.display.update()
-#   clock.tick(60)
-
 import pygame
 import numpy as np
 from sys import exit
+
 #constants for connect 4 logic
 ROWS = 6
 COLS = 7
-SPACES = ROWS * COLS
-
+SPACES = COLS * ROWS
 #board and logic
 board_array = np.zeros((6,7))
 current = 1
@@ -93,6 +36,9 @@ red_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
 blue_wins_surf = font.render("Blue Wins!", True, "Black")
 blue_rect = blue_wins_surf.get_rect()
 blue_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
+draw_surf = font.render("Draw", True, "Black")
+draw_rect = draw_surf.get_rect()
+draw_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
 #functions
 def drop_piece(board, col, player):
   for row in range(ROWS-1,-1, -1):
@@ -101,69 +47,71 @@ def drop_piece(board, col, player):
       return row
   return None
 
-
-
 def check_win(board, row, col, player):
-  counter = 1
-  #vert
-  for r in range(row-1, -1, -1):
-    if board[r, col] == player:
-      counter += 1
-    else:
-      break
-  for r in range(row+1, ROWS):
-    if board[r, col] == player:
-      counter += 1
-    else:
-      break
-  if counter >= 4:
-    return True
-  counter = 1
-  #horiz
-  for c in range(col-1, -1, -1):
-    if board[row, c] == player:
-      counter += 1
-    else:
-      break
-  for c in range(col+1, COLS):
-    if board[row, c] == player:
-      counter += 1
-    else:
-      break
-  if counter >= 4:
-    return True
-  counter = 1
-  #down right
-  for i in range(1, min(ROWS-row, COLS-col)):
-    if board[row+i, col+i] == player:
-      counter += 1
-    else:
-      break
-  #upleft
-  for i in range(1, min(row+1, col+1)):
-    if board[row-i, col-i] == player:
-      counter += 1
-    else:
-      break
-  if counter >= 4:
-    return True
-  counter = 1
-  #upright 
-  for i in range(1, min(row+1, COLS-col)):
-    if board[row+i, col-i] == player:
-      counter += 1
-    else:
-      break
-  #downleft
-  for i in range(1, min(ROWS-row, col+1)):
-    if board[row-i, col+i] == player:
-      counter += 1
-    else:
-      break
-  if counter >= 4:
-    return True
-  
-  return False
+    # Vertical check
+    count = 1
+    for r in range(row-1, -1, -1):  # up
+        if board[r, col] == player:
+            count += 1
+        else:
+            break
+    for r in range(row+1, ROWS):  # down
+        if board[r, col] == player:
+            count += 1
+        else:
+            break
+    if count >= 4:
+        return True
+
+    # Horizontal check
+    count = 1
+    for c in range(col-1, -1, -1):  # left
+        if board[row, c] == player:
+            count += 1
+        else:
+            break
+    for c in range(col+1, COLS):  # right
+        if board[row, c] == player:
+            count += 1
+        else:
+            break
+    if count >= 4:
+        return True
+
+    # Diagonal: top-left to bottom-right
+    count = 1
+    for i in range(1, min(row+1, col+1)):  # up-left
+        if board[row-i, col-i] == player:
+            count += 1
+        else:
+            break
+    for i in range(1, min(ROWS-row, COLS-col)):  # down-right
+        if board[row+i, col+i] == player:
+            count += 1
+        else:
+            break
+    if count >= 4:
+        return True
+
+    # Diagonal: top-right to bottom-left
+    count = 1
+    for i in range(1, min(row+1, COLS-col)):  # up-right
+        if board[row-i, col+i] == player:
+            count += 1
+        else:
+            break
+    for i in range(1, min(ROWS-row, col+1)):  # down-left
+        if board[row+i, col-i] == player:
+            count += 1
+        else:
+            break
+    if count >= 4:
+        return True
+
+    return False
+
+
+
 
 clock = pygame.time.Clock()
 
@@ -268,6 +216,13 @@ while run:
 
   elif winner == 2:
     screen.blit(blue_wins_surf, blue_rect)
+    pygame.display.update()
+    pygame.time.wait(3000)
+    pygame.quit()
+    exit()
+  
+  if total_turns == SPACES:
+    screen.blit(draw_surf, draw_rect)
     pygame.display.update()
     pygame.time.wait(3000)
     pygame.quit()
